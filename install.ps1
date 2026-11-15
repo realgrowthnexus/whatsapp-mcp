@@ -119,7 +119,7 @@
   function IsLinked {
     $creds = Join-Path $DataDir 'auth\creds.json'
     if (-not (Test-Path $creds)) { return $false }
-    try { return [bool]((Get-Content $creds -Raw | ConvertFrom-Json).registered) } catch { return $false }
+    try { $c = Get-Content $creds -Raw | ConvertFrom-Json; return [bool]($c.me.id -or $c.registered) } catch { return $false }
   }
 
   function CanUseDataDir {
