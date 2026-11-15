@@ -40,23 +40,50 @@ const claudeConfig =
       ? path.join(os.homedir(), 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
       : path.join(os.homedir(), '.config', 'Claude', 'claude_desktop_config.json');
 
-if (process.argv.includes('--claude')) {
+/** Claude Desktop from the Microsoft Store (MSIX) keeps its config in a private package folder. */
+function storeClaudeConfigs(): string[] {
+  if (process.platform !== 'win32') return [];
+  const pkgs = path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), 'AppData', 'Local'), 'Packages');
+  try {
+    return fs
+      .readdirSync(pkgs)
+      .filter((d) => /^(Anthropic\.)?Claude_/i.test(d))
+      .map((d) => path.join(pkgs, d, 'LocalCache', 'Roaming', 'Claude'))
+      .filter((d) => fs.existsSync(path.dirname(d)))
+      .map((d) => path.join(d, 'claude_desktop_config.json'));
+  } catch {
+    return [];
+  }
+}
+
+function addTo(file: string): boolean {
   let existing: { mcpServers?: Record<string, unknown> } = {};
-  if (fs.existsSync(claudeConfig)) {
-    const backup = `${claudeConfig}.bak-${Date.now()}`;
-    fs.copyFileSync(claudeConfig, backup);
+  if (fs.existsSync(file)) {
+    const backup = `${file}.bak-${Date.now()}`;
+    fs.copyFileSync(file, backup);
     console.log(`ℹ️  Backed up Claude config to ${backup}`);
     try {
-      existing = JSON.parse(fs.readFileSync(claudeConfig, 'utf8'));
+      existing = JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch {
-      console.error(`❌ ${claudeConfig} is not valid JSON. Fix it or add the entry below by hand.`);
-      process.exit(1);
+      console.error(`❌ ${file} is not valid JSON. Fix it or add the entry below by hand.`);
+      return false;
     }
   }
   existing.mcpServers = { ...(existing.mcpServers ?? {}), whatsapp: mcpEntry };
-  fs.mkdirSync(path.dirname(claudeConfig), { recursive: true });
-  fs.writeFileSync(claudeConfig, JSON.stringify(existing, null, 2) + '\n');
-  console.log(`✅ Added "whatsapp" to ${claudeConfig}. Fully quit and reopen Claude Desktop.`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(existing, null, 2) + '\n');
+  console.log(`✅ Added "whatsapp" to ${file}`);
+  return true;
+}
+
+if (process.argv.includes('--claude')) {
+  const targets = [claudeConfig, ...storeClaudeConfigs()];
+  const ok = targets.map(addTo).every(Boolean);
+  if (!ok) {
+    console.log(JSON.stringify(snippet, null, 2));
+    process.exit(1);
+  }
+  console.log('   Fully quit and reopen Claude Desktop to load it.');
 } else {
   console.log(`\nAdd this to ${claudeConfig}`);
   console.log('(or run "npm run setup -- --claude" to add it automatically):\n');

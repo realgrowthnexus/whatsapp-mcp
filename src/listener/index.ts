@@ -56,6 +56,7 @@ async function main(): Promise<void> {
 
   let ipc: IpcServer | undefined;
   let shuttingDown = false;
+  let linkedTimer: NodeJS.Timeout | undefined;
   const shutdown = async (code: number, message?: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
@@ -72,6 +73,15 @@ async function main(): Promise<void> {
   const connection = new WhatsAppConnection(store, {
     interactive,
     onFatal: (code, message) => void shutdown(code, `❌ ${message}`),
+    // Installer mode: once linked, give WhatsApp a minute to send recent chats, then exit
+    // so the installer can start the background service by itself (no Ctrl+C needed).
+    onOpen: process.argv.includes('--exit-after-link')
+      ? () => {
+          if (linkedTimer) return;
+          console.log('\n✅ Linked! Saving your recent chats (about 60 seconds, please wait)…');
+          linkedTimer = setTimeout(() => void shutdown(EXIT.OK, '✅ Recent chats saved.'), 60_000);
+        }
+      : undefined,
   });
   const actions = new Actions({ store, drafts, transport: connection, loadConfig: () => loadConfig(), startedAt });
   ipc = await startIpcServer(actions, { startedAt, onShutdown: () => void shutdown(EXIT.STOPPED, 'Stopped on request.') });

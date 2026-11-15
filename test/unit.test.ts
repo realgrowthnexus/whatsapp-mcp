@@ -76,3 +76,22 @@ describe('message parsing', () => {
     expect(parseMessage(m({ reactionMessage: { text: '👍' } })).skip).toBe(true);
   });
 });
+
+describe('built-in SQLite wrapper', () => {
+  it('commits, rolls back (incl. nested), binds booleans/undefined and named params', async () => {
+    const { Database } = await import('../src/shared/sqlite.js');
+    const db = new Database(':memory:');
+    db.exec('CREATE TABLE t (a INTEGER, b TEXT)');
+    db.transaction(() => { db.prepare('INSERT INTO t VALUES (@a, @b)').run({ a: true, b: undefined }); })();
+    expect(() => db.transaction(() => { db.prepare('INSERT INTO t VALUES (?, ?)').run(2, 'x'); throw new Error('boom'); })()).toThrow('boom');
+    db.transaction(() => {
+      db.prepare('INSERT INTO t VALUES (?, ?)').run(3, 'y');
+      try { db.transaction(() => { db.prepare('INSERT INTO t VALUES (?, ?)').run(4, 'z'); throw new Error('inner'); })(); } catch { /* inner rolled back */ }
+    })();
+    expect(db.prepare('SELECT a, b FROM t ORDER BY a').all()).toEqual([{ a: 1, b: null }, { a: 3, b: 'y' }]);
+    const r = db.prepare('INSERT INTO t VALUES (5, ?)').run('w');
+    expect(r.changes).toBe(1);
+    expect(Number(r.lastInsertRowid)).toBe(3);
+    db.close();
+  });
+});
