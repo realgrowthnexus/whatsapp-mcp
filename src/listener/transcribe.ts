@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import ffmpegPath from 'ffmpeg-static';
 import type { Config } from '../shared/config.js';
 import { paths } from '../shared/paths.js';
 
@@ -24,7 +23,8 @@ export async function transcribe(audioFile: string, config: Config): Promise<str
   if (!t.model || !fs.existsSync(t.model)) {
     throw new TranscriptionUnavailable(`Whisper model not found at "${t.model}". See README → "Voice note transcription".`);
   }
-  const ffmpeg = ffmpegPath as unknown as string | null;
+  // ffmpeg-static is optional: if its download failed during install, everything else still works.
+  const ffmpeg = await import('ffmpeg-static').then((m) => (m.default as unknown as string | null), () => null);
   if (!ffmpeg || !fs.existsSync(ffmpeg)) {
     throw new TranscriptionUnavailable('ffmpeg is missing. Run "npm install" again in the whatsapp-mcp folder.');
   }

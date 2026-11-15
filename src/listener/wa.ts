@@ -28,6 +28,8 @@ export interface ConnectionOptions {
   interactive: boolean;
   /** Called for problems that need YOU to do something (re-link etc.). */
   onFatal: (exitCode: number, message: string) => void;
+  /** Called every time the connection opens (used by "--exit-after-link"). */
+  onOpen?: () => void;
 }
 
 /**
@@ -139,7 +141,8 @@ export class WhatsAppConnection implements WaTransport {
       this.conn = { connection: 'open', linkedAs: phone, lastError: null };
       this.store.setMeta('linked_as', phone ?? '');
       log(`Connected to WhatsApp as ${phone ?? 'unknown'}.`);
-      if (this.opts.interactive) {
+      this.opts.onOpen?.();
+      if (this.opts.interactive && !process.argv.includes('--exit-after-link')) {
         console.log('\n✅ Linked! Messages are now being saved on this computer.');
         console.log('   You can keep this window open, or press Ctrl+C and run "npm run start" to run it in the background.\n');
       }

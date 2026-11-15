@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import Database from 'better-sqlite3';
+import { Database } from './sqlite.js';
 import { paths } from './paths.js';
 
-export type DB = Database.Database;
+export type DB = Database;
 
 const WA_SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -114,7 +114,7 @@ export function openWaDbReadonly(file = paths.db): DB {
       'No WhatsApp data yet. Link your phone first: open a terminal in the whatsapp-mcp folder and run "npm run link".',
     );
   }
-  const db = new Database(file, { readonly: true, fileMustExist: true });
+  const db = new Database(file, { readonly: true });
   db.pragma('busy_timeout = 5000');
   return db;
 }

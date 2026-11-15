@@ -34,31 +34,24 @@ These checks run inside the **listener**, not in the part Claude talks to, so Cl
 
 ---
 
-## ⚡ Quick start (fastest way to the QR code)
+## ⚡ One-line install (recommended)
 
-Install **Node.js 24 LTS**, **Git** and **Claude Desktop** first (see step 1 below). Then in **PowerShell**, run these one at a time:
-
-```bash
-cd $HOME
-```
+You only need **Claude Desktop**. Open **PowerShell** (Start menu → type "PowerShell"; no admin needed), paste this one line and press Enter:
 
 ```bash
-git clone https://github.com/realgrowthnexus/whatsapp-mcp.git
+irm https://raw.githubusercontent.com/realgrowthnexus/whatsapp-mcp/main/install.ps1 | iex
 ```
 
-```bash
-cd whatsapp-mcp
-```
+The installer does everything by itself:
+1. Uses your Node.js if it's new enough. If not, it downloads a private, checksum-verified copy of Node.js 24 LTS. Nothing is installed system-wide.
+2. Downloads the project to `%USERPROFILE%\whatsapp-mcp`. An older copy is moved aside, never deleted.
+3. Installs, builds, creates the private data folder and connects Claude Desktop (a backup of Claude's config is made first).
+4. Shows **">>> READY TO SCAN <<<"** and a QR code. **On your phone:** WhatsApp Business → Linked devices → Link a device, then scan. This is the only thing you do.
+5. Saves your recent chats, starts the background listener and sets it to start when you log in.
 
-```bash
-npm install
-```
+Then fully quit and reopen Claude Desktop, and add the chats Claude may use to the allowlist (step 3 below). Running the installer again is safe; it updates and skips what's already done.
 
-```bash
-npm run quickstart
-```
-
-`npm run quickstart` builds the project, creates your private data folder, adds "whatsapp" to Claude Desktop's config (a backup is made first) and then **shows the QR code**. Scan it from your phone (WhatsApp Business → Linked devices → Link a device). When you see **"✅ Linked!"**, wait a minute, press **Ctrl+C**, and continue with **step 3** (allowlist) below.
+The manual steps below do the same thing by hand.
 
 ---
 
@@ -66,7 +59,7 @@ npm run quickstart
 
 You need:
 - **Windows 10 or 11**
-- **Node.js 24 LTS** (version 22 or newer) from https://nodejs.org. Use the default installer options.
+- **Node.js 24 LTS** (version 22.13 or newer) from https://nodejs.org. Use the default installer options.
 - **Git** from https://git-scm.com (or download this repo as a ZIP)
 - **Claude Desktop**
 
@@ -300,7 +293,7 @@ Everything is in `%LOCALAPPDATA%\WhatsAppMCP` (for example `C:\Users\you\AppData
 | **"Sending is switched OFF by the kill switch"** | `npm run unkill`. |
 | **"No WhatsApp data yet"** in Claude | Run `npm run link` first. |
 | Claude doesn't show the whatsapp tools | Check the paths in `claude_desktop_config.json`, run `npm run build`, then fully quit and reopen Claude Desktop. Logs are in `%APPDATA%\Claude\logs\mcp-server-whatsapp.log`. |
-| `npm install` fails on `better-sqlite3` | Use Node.js 22 or 24 LTS. If you're on a newer non-LTS Node, switch to LTS. |
+| `npm install` fails | Use Node.js 24 LTS (22.13 or newer), or just use the one-line installer, which brings its own Node.js. |
 | Media download fails | WhatsApp deletes media from its servers after a while, so very old media may be gone. |
 
 ## Important limits and honest warnings
