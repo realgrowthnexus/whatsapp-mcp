@@ -10,7 +10,8 @@
 #      (an older copy is moved aside, never deleted; your WhatsApp data is not touched).
 #   3. Installs, builds, creates the private data folder and connects Claude Desktop.
 #   4. Shows the WhatsApp QR code. The ONLY thing you do is scan it.
-#   5. After linking, starts the background listener and sets it to start at login.
+#   5. After linking, starts the background listener and sets it to start at login,
+#      and allows your clients (every one-to-one chat except +92 numbers) for Claude.
 # Running it again is safe: it updates and skips steps that are already done.
 
 & {
@@ -168,12 +169,11 @@
     Write-Host ''
     Write-Host ' Last step: fully QUIT Claude Desktop (right-click its tray icon near the clock -> Quit) and open it again.'
     Write-Host ''
-    Write-Host ' For safety, Claude sees NO chats until you allow them. Your chats and numbers:'
-    $null = Exec $node @('dist\cli\chats.js')
+    Write-Host ' Allowing your clients (every one-to-one chat EXCEPT +92 numbers) so Claude can read and draft replies:'
+    $null = Exec $node @('dist\cli\allow-clients.js')
     Write-Host ''
-    Write-Host " To allow chats, put their numbers in `"allowlist`" -> `"chats`" in:"
-    Write-Host "   $DataDir\config.json"
-    Write-Host ' (or ask the Claude session that set this up to do it for you).'
+    Write-Host ' Groups and +92 numbers stay hidden. New clients later? Just run this installer line again.'
+    Write-Host " To hide a chat, delete its number from `"allowlist`" -> `"chats`" in: $DataDir\config.json"
   } catch {
     Write-Host ''
     Write-Host "INSTALL STOPPED: $($_.Exception.Message)" -ForegroundColor Red
