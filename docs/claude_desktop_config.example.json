@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "whatsapp": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": ["C:\\Users\\YOUR-NAME\\whatsapp-mcp\\dist\\mcp\\index.js"]
+    }
+  }
+}
