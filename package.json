@@ -7,6 +7,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "setup": "node dist/cli/setup.js",
+    "quickstart": "npm run build && node dist/cli/setup.js --claude && node dist/listener/index.js --link",
     "link": "node dist/listener/index.js --link",
     "start": "node dist/cli/service.js start",
     "stop": "node dist/cli/service.js stop",

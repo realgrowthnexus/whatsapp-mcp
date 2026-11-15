@@ -34,6 +34,34 @@ These checks run inside the **listener**, not in the part Claude talks to, so Cl
 
 ---
 
+## ⚡ Quick start (fastest way to the QR code)
+
+Install **Node.js 24 LTS**, **Git** and **Claude Desktop** first (see step 1 below). Then in **PowerShell**, run these one at a time:
+
+```bash
+cd $HOME
+```
+
+```bash
+git clone https://github.com/realgrowthnexus/whatsapp-mcp.git
+```
+
+```bash
+cd whatsapp-mcp
+```
+
+```bash
+npm install
+```
+
+```bash
+npm run quickstart
+```
+
+`npm run quickstart` builds the project, creates your private data folder, adds "whatsapp" to Claude Desktop's config (a backup is made first) and then **shows the QR code**. Scan it from your phone (WhatsApp Business → Linked devices → Link a device). When you see **"✅ Linked!"**, wait a minute, press **Ctrl+C**, and continue with **step 3** (allowlist) below.
+
+---
+
 ## 1. Install (one time, about 10 minutes)
 
 You need:
