@@ -1,5 +1,10 @@
 import type { Config } from './config.js';
 
+/** Country codes whose numbers are NOT treated as clients (Pakistan). */
+export const SKIPPED_COUNTRY_CODES = ['92'];
+
+export const isSkippedNumber = (digits: string) => SKIPPED_COUNTRY_CODES.some((cc) => digits.startsWith(cc));
+
 export const isGroupJid = (jid: string) => jid.endsWith('@g.us');
 export const isLidJid = (jid: string) => jid.endsWith('@lid');
 export const isPnJid = (jid: string) => jid.endsWith('@s.whatsapp.net');
