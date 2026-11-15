@@ -17,6 +17,7 @@ import { paths } from '../shared/paths.js';
 import { ensurePrivateDir } from '../shared/secure.js';
 import { isGroupJid } from '../shared/jid.js';
 import { EXIT } from './exit-codes.js';
+import { isLinkedCreds } from './linked.js';
 import { log } from './log.js';
 import type { Store } from './store.js';
 import type { Presence, WaTransport } from './transport.js';
@@ -67,7 +68,7 @@ export class WhatsAppConnection implements WaTransport {
     if (this.stopped) return;
     const { state, saveCreds } = await useMultiFileAuthState(paths.auth);
 
-    if (!state.creds.registered && !this.opts.interactive) {
+    if (!isLinkedCreds(state.creds) && !this.opts.interactive) {
       this.conn = { connection: 'needs_link', linkedAs: null, lastError: 'Not linked yet' };
       this.opts.onFatal(
         EXIT.NEEDS_LINK,

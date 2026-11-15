@@ -122,3 +122,13 @@ describe('allow-clients (all one-to-one chats except +92)', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 });
+
+describe('linked detection', () => {
+  it('treats a QR-linked session (creds.me set, registered false) as linked', async () => {
+    const { isLinkedCreds } = await import('../src/listener/linked.js');
+    expect(isLinkedCreds({ me: { id: '923001234567:5@s.whatsapp.net' }, registered: false })).toBe(true);
+    expect(isLinkedCreds({ registered: true })).toBe(true);
+    expect(isLinkedCreds({ registered: false })).toBe(false);
+    expect(isLinkedCreds({ me: null, registered: false })).toBe(false);
+  });
+});
