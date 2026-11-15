@@ -1,6 +1,6 @@
 import type { Config } from './config.js';
 import type { DB } from './db.js';
-import { digitsOnly, isAllowed, isGroupJid, phoneOf, userPart } from './jid.js';
+import { digitsOnly, isAllowed, isBroadcastLike, isGroupJid, isSkippedNumber, phoneOf, userPart } from './jid.js';
 import { toLocalIso } from './time.js';
 
 export interface ChatRow {
@@ -68,7 +68,21 @@ export function phoneForChat(db: DB, jid: string): string | null {
 }
 
 export function chatIsAllowed(db: DB, config: Config, jid: string): boolean {
-  return isAllowed(config, jid, pnForLid(db, jid));
+  if (isAllowed(config, jid, pnForLid(db, jid))) return true;
+  return config.allowlist.autoAllowNewClients === true && isAutoClient(db, jid);
+}
+
+/**
+ * Used by allowlist.autoAllowNewClients: a one-to-one chat whose phone number is known
+ * and is neither a +92 number nor your own linked number.
+ */
+export function isAutoClient(db: DB, jid: string): boolean {
+  if (isGroupJid(jid) || isBroadcastLike(jid)) return false;
+  const phone = phoneForChat(db, jid)?.replace('+', '');
+  if (!phone) return false;
+  const me = ((db.prepare("SELECT value FROM meta WHERE key = 'linked_as'").get() as { value: string } | undefined)?.value ?? '').replace(/\D/g, '');
+  if (me && phone === me) return false;
+  return !isSkippedNumber(phone);
 }
 
 /** All chats (with activity) that the allowlist lets Claude see. */

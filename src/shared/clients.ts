@@ -1,11 +1,8 @@
 import type { DB } from './db.js';
-import { isBroadcastLike, isGroupJid } from './jid.js';
+import { isBroadcastLike, isGroupJid, isSkippedNumber } from './jid.js';
 import { displayName, phoneForChat, type ChatRow } from './queries.js';
 
-/** Country codes whose numbers are NOT treated as clients (Pakistan). */
-export const SKIPPED_COUNTRY_CODES = ['92'];
-
-export const isSkippedNumber = (digits: string) => SKIPPED_COUNTRY_CODES.some((cc) => digits.startsWith(cc));
+export { SKIPPED_COUNTRY_CODES, isSkippedNumber } from './jid.js';
 
 export interface ClientCandidate {
   name: string;
