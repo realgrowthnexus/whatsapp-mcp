@@ -95,3 +95,30 @@ describe('built-in SQLite wrapper', () => {
     db.close();
   });
 });
+
+describe('allow-clients (all one-to-one chats except +92)', () => {
+  it('selects non-+92 one-to-one chats, skipping groups, self, +92 and unknown numbers', async () => {
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const fs = await import('node:fs');
+    const { openWaDbWritable } = await import('../src/shared/db.js');
+    const { clientChats } = await import('../src/shared/clients.js');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wa-clients-'));
+    const db = openWaDbWritable(path.join(dir, 'wa.db'));
+    db.prepare("INSERT INTO meta VALUES ('linked_as', '+447700000000')").run();
+    db.prepare("INSERT INTO lid_map VALUES ('555@lid', '14155550123@s.whatsapp.net')").run();
+    const add = db.prepare('INSERT INTO chats (jid, name, is_group, last_ts) VALUES (?, ?, ?, ?)');
+    add.run('447700900123@s.whatsapp.net', 'Emma UK', 0, 9);
+    add.run('923001111111@s.whatsapp.net', 'Ali PK', 0, 8);
+    add.run('120363012345678901@g.us', 'Team Group', 1, 7);
+    add.run('447700000000@s.whatsapp.net', 'Me', 0, 6);
+    add.run('971501234567@s.whatsapp.net', null, 0, 5);
+    add.run('555@lid', 'US via LID', 0, 4);
+    add.run('999@lid', 'Hidden number', 0, 3);
+    const r = clientChats(db);
+    expect(r.clients.map((c) => c.entry)).toEqual(['447700900123', '971501234567', '14155550123']);
+    expect(r.unknownNumber).toBe(1);
+    db.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+});

@@ -20,6 +20,7 @@
     "uninstall-service": "node dist/cli/service.js uninstall",
     "mcp": "node dist/mcp/index.js",
     "chats": "node dist/cli/chats.js",
+    "allow-clients": "node dist/cli/allow-clients.js",
     "pretest": "npm run build"
   },
   "repository": {

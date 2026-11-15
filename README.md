@@ -48,8 +48,9 @@ The installer does everything by itself:
 3. Installs, builds, creates the private data folder and connects Claude Desktop (a backup of Claude's config is made first).
 4. Shows **">>> READY TO SCAN <<<"** and a QR code. **On your phone:** WhatsApp Business → Linked devices → Link a device, then scan. This is the only thing you do.
 5. Saves your recent chats, starts the background listener and sets it to start when you log in.
+6. Allows your **clients**: every one-to-one chat **except +92 numbers** is added to the allowlist. Groups and +92 numbers stay hidden.
 
-Then fully quit and reopen Claude Desktop, and add the chats Claude may use to the allowlist (step 3 below). Running the installer again is safe; it updates and skips what's already done.
+Then fully quit and reopen Claude Desktop. New clients later? Run the same line again (or `npm run allow-clients`). Running the installer again is safe; it updates and skips what's already done.
 
 The manual steps below do the same thing by hand.
 
@@ -125,6 +126,7 @@ Add the numbers (international format, no `+` needed) and save:
 ```
 
 - A group can only be added by its ID, which `npm run chats -- --groups` shows (it looks like `120363012345678901@g.us`).
+- `npm run allow-clients` adds every one-to-one chat except +92 numbers (your clients); `-- --dry-run` only shows them.
 - `"chats": ["*"]` allows **all** one-to-one chats. This isn't recommended. Groups still need to be listed one by one.
 - Changes apply straight away; nothing needs restarting.
 
