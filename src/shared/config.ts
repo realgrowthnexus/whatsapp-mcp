@@ -97,9 +97,22 @@ export function loadConfig(file = paths.config): Config {
   if (!fs.existsSync(file)) {
     throw new ConfigError(`Config file not found at ${file}. Run "npm run setup" first.`);
   }
+  let text: string;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === 'EPERM' || code === 'EACCES') {
+      throw new ConfigError(
+        `Windows refused access to ${file} (${code}): the folder's permissions are broken. ` +
+          'Run the installer line again; it repairs them (it may ask for one "Yes" click).',
+      );
+    }
+    throw new ConfigError(`Could not read config file ${file}: ${(err as Error).message}`);
+  }
   let raw: unknown;
   try {
-    raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+    raw = JSON.parse(text);
   } catch (err) {
     throw new ConfigError(`Config file ${file} is not valid JSON: ${(err as Error).message}`);
   }

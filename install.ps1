@@ -122,6 +122,33 @@
     try { return [bool]((Get-Content $creds -Raw | ConvertFrom-Json).registered) } catch { return $false }
   }
 
+  function CanUseDataDir {
+    try {
+      Get-ChildItem -LiteralPath $DataDir -Recurse -Force -ErrorAction Stop | Where-Object { -not $_.PSIsContainer } |
+        ForEach-Object { [IO.File]::Open($_.FullName, 'Open', 'Read', 'ReadWrite').Dispose() }
+      return $true
+    } catch { return $false }
+  }
+
+  # Make the private data folder readable by you again (only you), without touching its contents.
+  function Repair-DataDir {
+    if (-not (Test-Path -LiteralPath $DataDir)) { return }
+    if (CanUseDataDir) { return }
+    Say 'Repairing permissions on your private WhatsApp folder...'
+    $sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    $null = Exec 'icacls.exe' @($DataDir, '/inheritance:r', '/grant:r', "*${sid}:(OI)(CI)F", '/Q')
+    $null = Exec 'icacls.exe' @((Join-Path $DataDir '*'), '/reset', '/T', '/C', '/Q')
+    if (CanUseDataDir) { Ok 'Permissions repaired.'; return }
+
+    Write-Host '    Windows needs your OK for this. Click "Yes" on the prompt that appears.' -ForegroundColor Yellow
+    $d = $DataDir
+    $cmd = "takeown /F `"$d`" /R /D Y >nul 2>&1 & icacls `"$d`" /setowner *$sid /T /C /Q >nul 2>&1 & " +
+           "icacls `"$d`" /inheritance:r /grant:r *${sid}:(OI)(CI)F /Q & icacls `"$d\*`" /reset /T /C /Q"
+    try { Start-Process cmd.exe -ArgumentList "/c $cmd" -Verb RunAs -Wait -WindowStyle Hidden } catch { Fail 'Permission repair was cancelled. Run the installer again and click "Yes".' }
+    if (CanUseDataDir) { Ok 'Permissions repaired.'; return }
+    Fail "Could not repair permissions on $DataDir. Make sure no WhatsApp listener window is open, then run the installer again."
+  }
+
   try {
     Write-Host "`nWhatsApp MCP installer - sit back, the only thing you'll do is scan a QR code." -ForegroundColor White
 
@@ -145,6 +172,7 @@
     Run 'Building' $node @($npmCli, 'run', 'build')
 
     Say 'Step 4/5: Private data folder + Claude Desktop connection'
+    Repair-DataDir
     Run 'Setup' $node @('dist\cli\setup.js', '--claude')
 
     Say 'Step 5/5: Link WhatsApp'
