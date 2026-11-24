@@ -123,6 +123,34 @@ describe('allow-clients (all one-to-one chats except +92)', () => {
   });
 });
 
+describe('autoAllowNewClients', () => {
+  it('lets new non-+92 one-to-one chats through only when switched on', async () => {
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const fs = await import('node:fs');
+    const { openWaDbWritable } = await import('../src/shared/db.js');
+    const { chatIsAllowed } = await import('../src/shared/queries.js');
+    const { configSchema } = await import('../src/shared/config.js');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wa-auto-'));
+    const db = openWaDbWritable(path.join(dir, 'wa.db'));
+    db.prepare("INSERT INTO meta VALUES ('linked_as', '+447700000000')").run();
+    db.prepare("INSERT INTO lid_map VALUES ('555@lid', '14155550123@s.whatsapp.net')").run();
+    const off = configSchema.parse({});
+    const on = configSchema.parse({ allowlist: { autoAllowNewClients: true } });
+    expect(off.allowlist.autoAllowNewClients).toBe(false);
+    expect(chatIsAllowed(db, off, '447700900123@s.whatsapp.net')).toBe(false);
+    expect(chatIsAllowed(db, on, '447700900123@s.whatsapp.net')).toBe(true);
+    expect(chatIsAllowed(db, on, '555@lid')).toBe(true);
+    expect(chatIsAllowed(db, on, '923001111111@s.whatsapp.net')).toBe(false);
+    expect(chatIsAllowed(db, on, '447700000000@s.whatsapp.net')).toBe(false);
+    expect(chatIsAllowed(db, on, '120363012345678901@g.us')).toBe(false);
+    expect(chatIsAllowed(db, on, 'status@broadcast')).toBe(false);
+    expect(chatIsAllowed(db, on, '999@lid')).toBe(false);
+    db.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+});
+
 describe('linked detection', () => {
   it('treats a QR-linked session (creds.me set, registered false) as linked', async () => {
     const { isLinkedCreds } = await import('../src/listener/linked.js');

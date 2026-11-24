@@ -32,8 +32,15 @@ export const configSchema = z.object({
       chats: z.array(z.string()).default([]),
       /** Group chats are blocked unless their ID (e.g. "120363012345678901@g.us") is listed here. */
       groups: z.array(z.string()).default([]),
+      /**
+       * true: NEW one-to-one chats are allowed automatically as soon as their phone
+       * number is known, unless it starts with +92 or is your own number. Groups,
+       * broadcasts and chats with a hidden number stay blocked. All other safety
+       * rules (drafts only, reply-only, rate limits, kill switch) still apply.
+       */
+      autoAllowNewClients: z.boolean().default(false),
     })
-    .default({ chats: [], groups: [] }),
+    .default({ chats: [], groups: [], autoAllowNewClients: false }),
   approvals: z
     .object({
       /**
@@ -70,7 +77,8 @@ export const DEFAULT_CONFIG_TEXT = `{
   "killSwitch": false,
   "allowlist": {
     "chats": [],
-    "groups": []
+    "groups": [],
+    "autoAllowNewClients": false
   },
   "approvals": {
     "allowFromClaude": true

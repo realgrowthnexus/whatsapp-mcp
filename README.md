@@ -127,6 +127,7 @@ Add the numbers (international format, no `+` needed) and save:
 
 - A group can only be added by its ID, which `npm run chats -- --groups` shows (it looks like `120363012345678901@g.us`).
 - `npm run allow-clients` adds every one-to-one chat except +92 numbers (your clients); `-- --dry-run` only shows them.
+- `"autoAllowNewClients": true` (inside `"allowlist"`) lets Claude see **new** clients automatically: any new one-to-one chat whose number is known and doesn't start with +92 (and isn't your own number). Groups, broadcasts and hidden numbers stay blocked, and every other safety rule still applies (drafts only, replies only, rate limits, kill switch). Default `false`.
 - `"chats": ["*"]` allows **all** one-to-one chats. This isn't recommended. Groups still need to be listed one by one.
 - Changes apply straight away; nothing needs restarting.
 
